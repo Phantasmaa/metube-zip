@@ -82,9 +82,14 @@ def run_ytdlp_playlist(url: str, quality: str, fmt: str, workdir: Path) -> tuple
         "--no-playlist-reverse",
     ]
 
-    # Use cookies file if present (solves YouTube bot check for datacenter IPs)
+    # Cookies: prefer file, fallback to live browser profile
     if COOKIES_PATH.exists() and COOKIES_PATH.stat().st_size > 0:
         cmd.extend(["--cookies", str(COOKIES_PATH)])
+    else:
+        # Live: yt-dlp lee del browser persistente en vivo (sin reiniciar)
+        chrome_profile = Path("/root/.browser-login/chrome-profile")
+        if chrome_profile.exists():
+            cmd.extend(["--cookies-from-browser", f"chromium:{chrome_profile}"])
 
     cmd.extend([
         "-f", format_sel,
